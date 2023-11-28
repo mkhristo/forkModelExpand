@@ -56,7 +56,7 @@ def student_api(student_id):
         return jsonify(serialize_db_student_with_marks(student))
 
 
-@app.route('/marks', methods=["GET", "POST"])
+@app.route('/marks', methods=["GET", "POST", "PATCH", "DELETE"])
 def marks_api():
     if request.method == "POST":
         data = deserialize_mark_data()
@@ -69,9 +69,26 @@ def marks_api():
             return jsonify({"message": "student ID not found"}), 404
         mark = Mark.create(value=data["value"], teacher=teacher, student=student)
         return jsonify(serialize_db_mark(mark)), 201
-    if request.method == "GET":
+    elif request.method == "GET":
         marks = Mark.select(Mark, Student).join(Student)
         return jsonify([serialize_db_mark(mark) for mark in marks])
+    elif request.method == "PATCH":
+        data = deserialize_mark_data()
+        validate_mark_data(data)
+        mark = Mark.get_or_none(Mark.id == data["id"])
+        if not mark:
+            return jsonify({"message": "mark not found"}), 404
+        mark.value = data["value"]
+        mark.save()
+        return jsonify(serialize_db_mark(mark)), 200
+    elif request.method == "DELETE":
+        data = deserialize_mark_data()
+        validate_mark_data(data)
+        mark = Mark.get_or_none(Mark.id == data["id"])
+        if not mark:
+            return jsonify({"message": "mark not found"}), 404
+        mark.delete_instance()
+        return jsonify({"message": "mark deleted"}), 200
 
 
 @app.route('/teachers', methods=["GET", "POST", "PATCH", "DELETE"])
