@@ -2,9 +2,11 @@ from flask import Flask, jsonify, request
 from peewee import fn
 
 from db import Student, Mark, Teacher
-from deserializators import deserialize_student_data, deserialize_mark_data, deserialize_teacher_data
+from deserializators import deserialize_student_data, deserialize_mark_data, deserialize_teacher_data, \
+    deserialize_mark_data_on_change, deserialize_mark_data_on_delete
 from serializatiors import serialize_db_student, serialize_db_mark, serialize_db_student_with_marks, serialize_db_teacher
-from validators import ValidationError, validate_student_data, validate_teacher_data, validate_mark_data
+from validators import ValidationError, validate_student_data, validate_teacher_data, validate_mark_data, \
+    validate_mark_data_on_delete, validate_mark_data_on_change
 
 app = Flask(__name__)
 
@@ -73,18 +75,18 @@ def marks_api():
         marks = Mark.select(Mark, Student).join(Student)
         return jsonify([serialize_db_mark(mark) for mark in marks])
     elif request.method == "PATCH":
-        data = deserialize_mark_data()
-        validate_mark_data(data)
-        mark = Mark.get_or_none(Mark.id == data["id"])
+        data = deserialize_mark_data_on_change()
+        validate_mark_data_on_change(data)
+        mark = Mark.get_or_none(Mark.id == data["mark_id"])
         if not mark:
             return jsonify({"message": "mark not found"}), 404
-        mark.value = data["value"]
+        mark.value = data["new_value"]
         mark.save()
         return jsonify(serialize_db_mark(mark)), 200
     elif request.method == "DELETE":
-        data = deserialize_mark_data()
-        validate_mark_data(data)
-        mark = Mark.get_or_none(Mark.id == data["id"])
+        data = deserialize_mark_data_on_delete()
+        validate_mark_data_on_delete(data)
+        mark = Mark.get_or_none(Mark.id == data["mark_id"])
         if not mark:
             return jsonify({"message": "mark not found"}), 404
         mark.delete_instance()

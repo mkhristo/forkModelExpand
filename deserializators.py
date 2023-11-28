@@ -26,6 +26,26 @@ def deserialize_mark_data():
    }
 
 
+def deserialize_mark_data_on_change():
+    data = request.get_json()
+    mark_id = data.get("mark_id")
+    new_value = data.get("new_value")
+
+    return {
+        "mark_id": mark_id,
+        "new_value": new_value
+    }
+
+
+def deserialize_mark_data_on_delete():
+    data = request.get_json()
+    mark_id = data.get("mark_id")
+
+    return {
+        "mark_id": mark_id
+   }
+
+
 def deserialize_teacher_data():
     data = request.get_json()
 

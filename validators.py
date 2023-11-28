@@ -1,4 +1,4 @@
-from db import Teacher, Student
+from db import Teacher, Student, Mark
 
 
 class ValidationError(Exception):
@@ -59,5 +59,41 @@ def validate_mark_data(data):
     data["student"] = student
     data["teacher"] = teacher
     data["value"] = value
+
+    return data
+
+
+def validate_mark_data_on_delete(data):
+    if "mark_id" not in data:
+        raise ValidationError("mark_id is required")
+
+    mark_id = data.get("mark_id")
+
+    if not isinstance(mark_id, int):
+        raise ValidationError("mark_id must be integer")
+
+    mark = Mark.get_or_none(Mark.id == mark_id)
+    if not mark:
+        raise ValidationError("mark with such id not found")
+
+    return data
+
+
+def validate_mark_data_on_change(data):
+    if "mark_id" not in data or "new_value" not in data:
+        raise ValidationError("mark_id and new_value are required")
+
+    mark_id = data.get("mark_id")
+    new_value = data.get("new_value")
+
+    if not isinstance(mark_id, int):
+        raise ValidationError("mark_id must be integer")
+
+    if not isinstance(new_value, int) or new_value <= 0 or new_value > 5:
+        raise ValidationError("new value must be integer within 1 to 5")
+
+    mark = Mark.get_or_none(Mark.id == mark_id)
+    if not mark:
+        raise ValidationError("mark with such id not found")
 
     return data
